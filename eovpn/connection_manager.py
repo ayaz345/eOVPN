@@ -60,9 +60,7 @@ class NetworkManager(ConnectionManager):
     
     def to_string(self, data, decode: bool = False):
         _str = self.ffi.string(data)
-        if (decode):
-            return _str.decode("utf-8")
-        return _str
+        return _str.decode("utf-8") if decode else _str
 
     def start_watch(self):
         if not self.watch:
@@ -110,10 +108,8 @@ class NetworkManager(ConnectionManager):
                     self.to_string(self.nm_manager.get_active_vpn_connection_uuid()))
             return
 
-        is_uuid_found = self.nm_manager.is_vpn_activated(self.uuid)
-
-        if (is_uuid_found):
-            logger.info("current vpn UUID ({}).".format(self.uuid))
+        if is_uuid_found := self.nm_manager.is_vpn_activated(self.uuid):
+            logger.info(f"current vpn UUID ({self.uuid}).")
             self.nm_manager.disconnect(self.uuid)
             self.nm_manager.delete_connection(self.uuid)
             self.uuid = None
@@ -159,16 +155,14 @@ class OpenVPN3(ConnectionManager):
     
     def to_string(self, data, decode: bool = False):
         _str = self.ffi.string(data)
-        if (decode):
-            return _str.decode("utf-8")
-        return _str
+        return _str.decode("utf-8") if decode else _str
 
     def connect(self, openvpn_config):
         config_content = open(openvpn_config, "r").read()
         ca = self.get_setting(self.SETTING.CA)
         if ca is not None:
             ca_content = open(ca, "r").read()
-            config_content += "\n<ca>\n{}\n</ca>\n".format(ca_content)
+            config_content += f"\n<ca>\n{ca_content}\n</ca>\n"
         config_content = config_content.encode('utf-8')
 
         config_path = self.ovpn3.import_config(os.path.basename(openvpn_config).encode('utf-8'), config_content)
@@ -198,8 +192,7 @@ class OpenVPN3(ConnectionManager):
         self.ovpn3.resume_vpn()
 
     def version(self) -> str:
-        v = self.ovpn3.p_get_version()
-        if v:
+        if v := self.ovpn3.p_get_version():
             return self.to_string(self.ovpn3.p_get_version(), True)
         return None
 

@@ -20,7 +20,7 @@ class SettingsWindow(Base, Gtk.Builder):
         Gtk.Builder.__init__(self)
         self.signals = Signals()
 
-        self.add_from_resource(self.EOVPN_GRESOURCE_PREFIX + "/ui/" + "settings.ui")
+        self.add_from_resource(f"{self.EOVPN_GRESOURCE_PREFIX}/ui/settings.ui")
         self.window = self.get_object("settings_window")
         self.window.set_title("eOVPN Settings")
 
@@ -68,10 +68,10 @@ class SettingsWindow(Base, Gtk.Builder):
         self.tick_mark.set_from_icon_name("object-select-symbolic")
         self.tick_mark.hide()
         self.store("settings_tick", self.tick_mark)
-        
+
         self.header.pack_end(self.tick_mark)
         self.header.pack_end(self.spinner)
-        
+
         self.stack = Gtk.Stack.new()
         self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
         self.stack_switcher = Gtk.StackSwitcher.new()
@@ -89,7 +89,7 @@ class SettingsWindow(Base, Gtk.Builder):
         self.stack.add_titled(self.pref_box, "general", gettext.gettext("General"))
         self.stack.add_titled(self.backend_box, "Backend", gettext.gettext("Backend"))
 
-        
+
         label = Gtk.Label.new(gettext.gettext("Configuration Source"))
         label.set_halign(Gtk.Align.START)
         label.add_css_class("bold")
@@ -186,7 +186,7 @@ class SettingsWindow(Base, Gtk.Builder):
         self.ca_chooser_btn.connect("clicked", lambda btn: ca_file_chooser_dialog.show())
 
         ca_box.append(self.ca_chooser_btn)
-        
+
         self.user_pass_ca_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 4)
         self.user_pass_ca_box.add_css_class("mt-4")
         self.user_pass_ca_box.append(username_box)
@@ -204,7 +204,7 @@ class SettingsWindow(Base, Gtk.Builder):
                 self.username_entry.set_text(username)
 
             if (username := self.get_setting(self.SETTING.AUTH_USER)) is not None:
-                
+
                 def on_password_lookup(source, result):
                     logger.info(result.__str__())
                     try:
@@ -249,7 +249,7 @@ class SettingsWindow(Base, Gtk.Builder):
         self.switches.append(switch)
         list_box.append(row)
 
-        
+
         #attach to pref box
         frame.set_child(list_box)
         self.pref_box.append(frame)
@@ -262,7 +262,9 @@ class SettingsWindow(Base, Gtk.Builder):
         self.remove_all_vpn_btn.set_valign(Gtk.Align.END)
         self.remove_all_vpn_btn.set_vexpand(True)
         self.pref_box.append(self.remove_all_vpn_btn)
-        self.remove_all_vpn_btn.set_visible(True if self.get_setting(self.SETTING.MANAGER) == "networkmanager" else False)
+        self.remove_all_vpn_btn.set_visible(
+            self.get_setting(self.SETTING.MANAGER) == "networkmanager"
+        )
         self.pref_box.set_vexpand(True)
         self.window.set_child(self.stack)
 
@@ -271,7 +273,7 @@ class SettingsWindow(Base, Gtk.Builder):
         # Manager (Tab - 3)
         ###########################################################
 
-        
+
         box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 4)
 
         label = Gtk.Label.new(gettext.gettext("Backend"))
@@ -284,7 +286,7 @@ class SettingsWindow(Base, Gtk.Builder):
         version = NetworkManager(None).version()
         if (version):
             self.combobox.append("networkmanager", gettext.gettext("{} (OpenVPN 2)".format(version)))
-        
+
         try:
             ovpn3_version = OpenVPN3(None).version()
             if (ovpn3_version):
@@ -302,7 +304,7 @@ class SettingsWindow(Base, Gtk.Builder):
         ###########################################################
         # END Manager
         ###########################################################
-        
+
 
         #connect signals
         self.reset_btn.connect("clicked",
@@ -319,7 +321,7 @@ class SettingsWindow(Base, Gtk.Builder):
         ca_file_chooser_dialog.connect("response", self.signals.process_ca, self.ca_chooser_btn)
         self.ask_auth_switch.connect("state-set", self.signals.req_auth ,self.user_pass_ca_box)
         self.remove_all_vpn_btn.connect("clicked", lambda _: NetworkManager(None).delete_all_connections())
-        
+
         self.combobox.connect("changed", self.signals.on_backend_selected)
 
 

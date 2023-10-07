@@ -13,7 +13,7 @@ ffi = cffi.FFI()
 workdir = pathlib.Path(args.library).parent
 os.chdir(workdir)
 
-output = workdir / ("_" + pathlib.Path(args.library).name)
+output = workdir / f"_{pathlib.Path(args.library).name}"
 h_file = pathlib.Path(args.header)
 
 with open(h_file) as h_file:

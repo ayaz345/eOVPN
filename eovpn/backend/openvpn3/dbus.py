@@ -97,41 +97,44 @@ class OVPN3Dbus(Base):
         minor = OVPN3Constants.StatusMinor(status.get_child_value(1).get_uint32())
         reason = status.get_child_value(2).get_string()
 
-        logger.debug("{}({}) {}({}) {}".format(major, status.get_child_value(0).get_uint32(), minor, status.get_child_value(1).get_uint32(), reason))
+        logger.debug(
+            f"{major}({status.get_child_value(0).get_uint32()}) {minor}({status.get_child_value(1).get_uint32()}) {reason}"
+        )
 
-        if(major == OVPN3Constants.StatusMajor.CONNECTION and minor == OVPN3Constants.StatusMinor.CFG_REQUIRE_USER):
-            if self.get_setting(self.SETTING.AUTH_USER) is None:
-                update_callback(False, reason)
-                return
+        if major == OVPN3Constants.StatusMajor.CONNECTION:
+            if minor == OVPN3Constants.StatusMinor.CFG_REQUIRE_USER:
+                if self.get_setting(self.SETTING.AUTH_USER) is None:
+                    update_callback(False, reason)
+                    return
 
-            attention = self.get_attention()
-            for (t, g, i) in attention:
-                logger.info("%s %s %i", t, g, i)
-                if i == 0:
-                    self.module.ovpn3.send_auth(self.module.get_session_path(), t.value, g.value, i, self.get_setting(self.SETTING.AUTH_USER).encode("utf-8"))
-                elif i == 1:
-                    self.module.ovpn3.send_auth(self.module.get_session_path(), t.value, g.value, i, self.get_auth_password().encode("utf-8"))
-                else:
-                    logger.debug("unknown input required!")
-            self.module.ovpn3.set_dco(self.module.get_session_path(), self.get_setting(self.SETTING.OPENVPN3_DCO))
-            self.module.ovpn3.set_log_forward()
-            self.module.ovpn3.connect_vpn()
-        elif (major == OVPN3Constants.StatusMajor.CONNECTION and minor == OVPN3Constants.StatusMinor.CONN_AUTH_FAILED):
-            logger.error(reason)
-            update_callback(False, reason)
-        elif (major == OVPN3Constants.StatusMajor.CONNECTION and minor == OVPN3Constants.StatusMinor.CONN_CONNECTING):
-            update_callback([])
-        elif (major == OVPN3Constants.StatusMajor.CONNECTION and minor == OVPN3Constants.StatusMinor.CONN_CONNECTED):
-            update_callback(True)
-        elif (major == OVPN3Constants.StatusMajor.CONNECTION and minor == OVPN3Constants.StatusMinor.CONN_DISCONNECTED):
-            self.module.disconnect()
-        elif (major == OVPN3Constants.StatusMajor.CONNECTION and minor == OVPN3Constants.StatusMinor.CONN_PAUSED):
-            update_callback(["pause"])
-        elif (major == OVPN3Constants.StatusMajor.CONNECTION and minor == OVPN3Constants.StatusMinor.CONN_RESUMING):
-            update_callback(["resume"])
-        elif (major == OVPN3Constants.StatusMajor.CONNECTION and minor == OVPN3Constants.StatusMinor.CFG_OK):
-            if self.get_setting(self.SETTING.AUTH_USER) is None and self.once:
-                logger.warning("username is None. Proceeding with connection without auth.")
-                self.module.ovpn3.init_unique_session()
+                attention = self.get_attention()
+                for (t, g, i) in attention:
+                    logger.info("%s %s %i", t, g, i)
+                    if i == 0:
+                        self.module.ovpn3.send_auth(self.module.get_session_path(), t.value, g.value, i, self.get_setting(self.SETTING.AUTH_USER).encode("utf-8"))
+                    elif i == 1:
+                        self.module.ovpn3.send_auth(self.module.get_session_path(), t.value, g.value, i, self.get_auth_password().encode("utf-8"))
+                    else:
+                        logger.debug("unknown input required!")
+                self.module.ovpn3.set_dco(self.module.get_session_path(), self.get_setting(self.SETTING.OPENVPN3_DCO))
+                self.module.ovpn3.set_log_forward()
                 self.module.ovpn3.connect_vpn()
-                self.once = False
+            elif minor == OVPN3Constants.StatusMinor.CONN_AUTH_FAILED:
+                logger.error(reason)
+                update_callback(False, reason)
+            elif minor == OVPN3Constants.StatusMinor.CONN_CONNECTING:
+                update_callback([])
+            elif minor == OVPN3Constants.StatusMinor.CONN_CONNECTED:
+                update_callback(True)
+            elif minor == OVPN3Constants.StatusMinor.CONN_DISCONNECTED:
+                self.module.disconnect()
+            elif minor == OVPN3Constants.StatusMinor.CONN_PAUSED:
+                update_callback(["pause"])
+            elif minor == OVPN3Constants.StatusMinor.CONN_RESUMING:
+                update_callback(["resume"])
+            elif minor == OVPN3Constants.StatusMinor.CFG_OK:
+                if self.get_setting(self.SETTING.AUTH_USER) is None and self.once:
+                    logger.warning("username is None. Proceeding with connection without auth.")
+                    self.module.ovpn3.init_unique_session()
+                    self.module.ovpn3.connect_vpn()
+                    self.once = False

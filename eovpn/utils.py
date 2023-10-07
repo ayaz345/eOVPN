@@ -24,7 +24,7 @@ def download_remote_to_destination(remote, destination):
 
     ovpn = re.compile('.ovpn')
     crt = re.compile(r'.crt|cert|pem')
-     
+
     def make_zip_from_b(content):
         return zipfile.ZipFile(io.BytesIO(content), "r")
 
@@ -49,27 +49,24 @@ def download_remote_to_destination(remote, destination):
         zip_file = download_zip(remote)
     except:
         raise NotZipException(gettext.gettext("Configuration Source MUST be a ZIP file."))    
-        
+
     #list of files inside zip
     files_in_zip = zip_file.namelist()
 
     configs = list( filter(ovpn.findall, files_in_zip) )
     certs = list( filter(crt.findall, files_in_zip) )
     all_files = configs + certs
-    if len(configs) > 0:
+    if configs:
         for file_name in all_files:      
             file = zip_file.getinfo(file_name)
             file.filename = os.path.basename(file.filename) #remove nested dir
             logger.info(file.filename)
             zip_file.extract(file, destination)
-    
+
     return certs
 
 def ovpn_is_auth_required(ovpn_file):
     f = open(ovpn_file, "r")
     data = f.read()
 
-    if "auth-user-pass" in data:
-        return True
-    else:
-        return False
+    return "auth-user-pass" in data

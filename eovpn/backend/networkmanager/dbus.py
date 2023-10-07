@@ -45,12 +45,12 @@ class NMDbus:
         self.conn.signal_unsubscribe(self.conn_id)
     
     def sub_callback(self, connection, sender_name, object_path, interface_name, signal_name, parameters, update_callback):
-        logger.debug("{} {}".format(signal_name, parameters))
-    
+        logger.debug(f"{signal_name} {parameters}")
+
         x = GLib.Variant("(uu)", parameters)
         status = x.get_child_value(0).get_uint32()
         reason = x.get_child_value(1).get_uint32()
-    
+
         """ u state:
             (NMVpnConnectionState) The new state of the VPN connection.
 
@@ -62,10 +62,13 @@ class NMDbus:
 
         if (status == NM.VpnConnectionState.ACTIVATED):
             logger.debug("VPN connected.")
-            update_callback(True)   
-        elif ((status == NM.VpnConnectionState.DISCONNECTED) or (status == NM.VpnConnectionState.FAILED)):
-           logger.debug("VPN disconnected.")
-           is_connection_deletion_required = reason in [5, 6, 7, 8 , 9, 10]
-           GLib.timeout_add_seconds(1, update_callback, False, (error_reasons[reason] if is_connection_deletion_required else None))
+            update_callback(True)
+        elif status in [
+            NM.VpnConnectionState.DISCONNECTED,
+            NM.VpnConnectionState.FAILED,
+        ]:
+            logger.debug("VPN disconnected.")
+            is_connection_deletion_required = reason in [5, 6, 7, 8 , 9, 10]
+            GLib.timeout_add_seconds(1, update_callback, False, (error_reasons[reason] if is_connection_deletion_required else None))
         else:
             update_callback([status, reason])
