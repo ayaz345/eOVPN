@@ -14,7 +14,7 @@ except:
 APP_NAME = "com.github.jkotra.eovpn"
 
 sys.path.insert(1, os.getcwd())
-sys.path.insert(1, os.getcwd() + "/eovpn/")
+sys.path.insert(1, f"{os.getcwd()}/eovpn/")
 os.environ["GSETTINGS_SCHEMA_DIR"] = "data/"
 os.environ["G_MESSAGES_DEBUG"] = "eovpn"
 

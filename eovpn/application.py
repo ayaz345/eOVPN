@@ -19,7 +19,7 @@ class eovpn(Base):
 
     def start(self):
         css_provider = Gtk.CssProvider()
-        css_provider.load_from_resource(self.EOVPN_GRESOURCE_PREFIX + "/css/main.css")
+        css_provider.load_from_resource(f"{self.EOVPN_GRESOURCE_PREFIX}/css/main.css")
         display = Gdk.Display.get_default()
         Gtk.StyleContext.add_provider_for_display(display, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
@@ -41,7 +41,7 @@ def launch_eovpn():
 
     app.connect('activate', on_activate)
     app.connect('command-line', do_command_line)
-    
+
     #handle --config -c
     parser = argparse.ArgumentParser(prog="eovpn", add_help=False)
     args, _ = parser.parse_known_args(sys.argv[1:])
@@ -52,8 +52,7 @@ def launch_eovpn():
     if "-c" in sys.argv: sys.argv.remove("-c")
     if "--config" in sys.argv: sys.argv.remove("--config")
 
-    exit_code = app.run(sys.argv)
-    return exit_code
+    return app.run(sys.argv)
 
 def do_command_line(app, args):
 

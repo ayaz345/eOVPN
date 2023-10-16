@@ -19,12 +19,12 @@ class MainWindow(Base, Gtk.Builder):
         super().__init__()
         Gtk.Builder.__init__(self)
         self.app = app
-        
+
         if self.get_setting(self.SETTING.DARK_THEME) is True:
             gtk_settings = Gtk.Settings().get_default()
             gtk_settings.set_property("gtk-application-prefer-dark-theme", True)
 
-        self.add_from_resource(self.EOVPN_GRESOURCE_PREFIX + "/ui/" + "main.ui")
+        self.add_from_resource(f"{self.EOVPN_GRESOURCE_PREFIX}/ui/main.ui")
         self.window = self.get_object("main_window")
         self.window.set_title("eOVPN")
         self.window.set_icon_name(self.APP_ID)
@@ -117,7 +117,7 @@ class MainWindow(Base, Gtk.Builder):
                 self.paned.set_orientation(Gtk.Orientation.VERTICAL)
                 self.inner_left.set_size_request(-1, 100)
                 self.window.set_default_size(400, 800)
-        
+
         update_layout()
         self.paned.set_start_child(self.inner_left)
         self.paned.set_end_child(self.inner_right)
@@ -198,7 +198,7 @@ class MainWindow(Base, Gtk.Builder):
         self.connect_btn.set_valign(Gtk.Align.FILL)
         self.connect_btn.set_hexpand(True)
         self.connect_btn.set_vexpand(True)
-        
+
         self.connect_box.append(self.connect_btn)
 
         self.pause_resume_btn = Gtk.Button().new_from_icon_name("media-playback-pause-symbolic")
@@ -219,7 +219,7 @@ class MainWindow(Base, Gtk.Builder):
         # Bottom Progress Bar
         ###########################################################
         self.progress_bar = Gtk.ProgressBar.new()
-        
+
         #Initial connection check on startup + Progress bar update + signal connects
         if self.CM().status():
             self.connect_btn.set_label(gettext.gettext("Disconnect"))
@@ -246,7 +246,9 @@ class MainWindow(Base, Gtk.Builder):
 
         def open_ks(widget, data):
             builder = Gtk.Builder()
-            builder.add_from_resource(self.EOVPN_GRESOURCE_PREFIX + "/ui/keyboard_shortcuts.ui")
+            builder.add_from_resource(
+                f"{self.EOVPN_GRESOURCE_PREFIX}/ui/keyboard_shortcuts.ui"
+            )
             window = builder.get_object("shortcuts_window")
             window.set_transient_for(self.window)
             window.set_modal(True)
@@ -292,7 +294,7 @@ class MainWindow(Base, Gtk.Builder):
         self.app.set_accels_for_action("app.settings", ["<Primary>S"])
         self.app.set_accels_for_action("app.update", ["<Primary>U"])
         self.app.set_accels_for_action("app.about", ["<Primary>A"])
-        
+
         action = Gio.SimpleAction.new("connect", None)
         action.connect('activate', self.signals.connect_via_ks, self.get_selected_config)
         self.app.add_action(action)
@@ -308,7 +310,7 @@ class MainWindow(Base, Gtk.Builder):
         item = Gio.MenuItem.new(gettext.gettext("Horizontal"), "card-h")
         item.set_action_and_target_value("app.radiogroup", GLib.Variant.new_string("card-h"))
         layout_menu.append_item(item)
-        
+
 
         menu.append(gettext.gettext("Update"), "app.update")
         menu.append(gettext.gettext("Settings"), "app.settings")
@@ -339,8 +341,6 @@ class MainWindow(Base, Gtk.Builder):
                 adj.set_lower(v+1)
             except Exception as e:
                 logger.error(e)
-                pass
-
         #finally!
         self.box.append(self.paned)
         self.box.append(self.progress_bar)

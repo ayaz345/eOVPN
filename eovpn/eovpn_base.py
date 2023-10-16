@@ -74,7 +74,9 @@ class Settings:
 class Base:
 
     def __init__(self):
-        metadata = json.loads(open(os.path.dirname(__file__) + "/" + "metadata.json", "r").read())
+        metadata = json.loads(
+            open(f"{os.path.dirname(__file__)}/metadata.json", "r").read()
+        )
         self.APP_NAME = metadata["APP_NAME"]
         self.APP_ID = metadata["APP_ID"]
         self.APP_VERSION = metadata["APP_VERSION"]
@@ -82,7 +84,7 @@ class Base:
         self.AUTHOR = metadata["AUTHOR"]
         self.AUTHOR_MAIL = metadata["AUTHOR_MAIL"]
         self.AUTHOR_MAIL_SECONDARY = metadata["AUTHOR_MAIL_SECONDARY"]
-        
+
         # tip to translators - add yourself to the dict.
         #
         #   ex: "Name": ["Lang"]
@@ -96,19 +98,20 @@ class Base:
 
         self.EOVPN_CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), "eovpn")
         self.EOVPN_OVPN_CONFIG_DIR = os.path.join(self.EOVPN_CONFIG_DIR, "CONFIGS")
-        self.EOVPN_GRESOURCE_PREFIX = "/com/github/jkotra/" + self.APP_NAME.lower()
-        self.EOVPN_CSS = self.EOVPN_GRESOURCE_PREFIX + "/css/main.css"
+        self.EOVPN_GRESOURCE_PREFIX = f"/com/github/jkotra/{self.APP_NAME.lower()}"
+        self.EOVPN_CSS = f"{self.EOVPN_GRESOURCE_PREFIX}/css/main.css"
         self.SETTING = Settings()
         self.__settings = Gio.Settings.new(self.APP_ID)
     
     def get_builder(self, ui_resource_name):
-        if ui_resource_name not in _builder_record.keys():
-            builder = Gtk.Builder()
-            builder.add_from_resource(self.EOVPN_GRESOURCE_PREFIX + "/ui/" + ui_resource_name)
-            _builder_record[ui_resource_name] = builder
-            return builder
-        else:
+        if ui_resource_name in _builder_record.keys():
             return _builder_record[ui_resource_name]
+        builder = Gtk.Builder()
+        builder.add_from_resource(
+            f"{self.EOVPN_GRESOURCE_PREFIX}/ui/{ui_resource_name}"
+        )
+        _builder_record[ui_resource_name] = builder
+        return builder
 
     def store(self, item, obj):
         _storage_record[item] = obj
@@ -121,10 +124,12 @@ class Base:
             return
         Notify.init("com.github.jkotra.eovpn")
         notif = Notify.Notification.new("Connected", "Connected to VPN")
-        pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(self.EOVPN_GRESOURCE_PREFIX + "/icons/notification_connected.svg",
-                                                             128,
-                                                             -1,
-                                                             True)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+            f"{self.EOVPN_GRESOURCE_PREFIX}/icons/notification_connected.svg",
+            128,
+            -1,
+            True,
+        )
         notif.set_image_from_pixbuf(pixbuf)
         notif.show()
 
@@ -133,10 +138,12 @@ class Base:
             return
         Notify.init("com.github.jkotra.eovpn")
         notif = Notify.Notification.new("Disconnected", "Disconnected from VPN")
-        pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(self.EOVPN_GRESOURCE_PREFIX + "/icons/notification_disconnected.svg",
-                                                             128,
-                                                             -1,
-                                                             True)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+            f"{self.EOVPN_GRESOURCE_PREFIX}/icons/notification_disconnected.svg",
+            128,
+            -1,
+            True,
+        )
         notif.set_image_from_pixbuf(pixbuf)
         notif.show()
 
@@ -145,26 +152,32 @@ class Base:
             return
         Notify.init("com.github.jkotra.eovpn")
         notif = Notify.Notification.new("Error", error_message)
-        pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(self.EOVPN_GRESOURCE_PREFIX + "/icons/notification_disconnected.svg",
-                                                             128,
-                                                             -1,
-                                                             True)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+            f"{self.EOVPN_GRESOURCE_PREFIX}/icons/notification_disconnected.svg",
+            128,
+            -1,
+            True,
+        )
         notif.set_image_from_pixbuf(pixbuf)
         notif.show()
 
     def get_country_pixbuf(self, country_code):
 
         try:
-            return GdkPixbuf.Pixbuf.new_from_resource_at_scale(self.EOVPN_GRESOURCE_PREFIX + "/country_flags/svg/" + country_code + ".svg",
-                                                               -1,
-                                                               128,
-                                                               True)
+            return GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+                f"{self.EOVPN_GRESOURCE_PREFIX}/country_flags/svg/{country_code}.svg",
+                -1,
+                128,
+                True,
+            )
         except Exception as e:
             logger.error(str(e))
-            return GdkPixbuf.Pixbuf.new_from_resource_at_scale(self.EOVPN_GRESOURCE_PREFIX + "/country_flags/svg/uno.svg",
-                                                               -1,
-                                                               128,
-                                                               True)
+            return GdkPixbuf.Pixbuf.new_from_resource_at_scale(
+                f"{self.EOVPN_GRESOURCE_PREFIX}/country_flags/svg/uno.svg",
+                -1,
+                128,
+                True,
+            )
 
     def send_notification(self, action, message, connection_event=None):
         Notify.init("com.github.jkotra.eovpn")
@@ -190,11 +203,8 @@ class Base:
             if v == "null":
                 v = None
         elif v_type == "d":
-            v = v.get_double()        
-        else:
-            pass
-
-        logger.debug("{} {}".format(key, v))
+            v = v.get_double()
+        logger.debug(f"{key} {v}")
         return v            
 
     def set_setting(self, key, value):
@@ -209,13 +219,10 @@ class Base:
         if type(value) is int:
             g_value = GLib.Variant.new_int32(value)
         if type(value) is float:
-            g_value = GLib.Variant.new_double(value)    
+            g_value = GLib.Variant.new_double(value)
         if type(value) is str:
             g_value = GLib.Variant.new_string(value)
-        else:
-            pass
-        
-        logger.debug("{} {}".format(key, g_value))
+        logger.debug(f"{key} {g_value}")
         if g_value is not None:
             self.__settings.set_value(key, g_value)
 
